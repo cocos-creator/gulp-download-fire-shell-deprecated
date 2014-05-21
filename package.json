@@ -12,7 +12,7 @@
     "url": "git://github.com/r0nn/gulp-download-atom-shell"
   },
   "keywords": [
-    "gulpplugin",
+    "gulpfriendly",
     "atom-shell"
   ],
   "license": "MIT",

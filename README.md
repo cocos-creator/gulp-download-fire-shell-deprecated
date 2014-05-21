@@ -1,9 +1,14 @@
 # [gulp](http://gulpjs.com)-download-atom-shell
 > Download [atom-shell](http://github.com/atom/atom-shell) binary distribution
+
 **Port from [grunt-download-atom-shell](http://github.com/atom/grunt-download-atom-shell)**
 
 ## Installation
-`npm install --save-dev gulp-download-atom-shell`
+
+Install gulp plugin package:
+```sh
+npm install --save-dev gulp-download-atom-shell
+```
 
 ## Usage
 
