@@ -7,21 +7,40 @@ Progress = require 'progress'
 gutil    = require 'gulp-util'
 PluginError = gutil.PluginError
 
+PLUGIN_NAME = "gulp-download-atom-shell"
+
+spawn = (options, callback) ->
+    childProcess = require 'child_process'
+    stdout = []
+    stderr = []
+    error = null
+    proc = childProcess.spawn options.cmd, options.args, options.opts
+    proc.stdout.on 'data', (data) -> stdout.push data.toString()
+    proc.stderr.on 'data', (data) -> stderr.push data.toString()
+    proc.on 'exit', (code, signal) ->
+      error = new Error(signal) if code != 0
+      results = stderr: stderr.join(''), stdout: stdout.join(''), code: code
+      gutil.log PLUGIN_NAME, gutil.colors.red(results.stderr) if code != 0
+      callback error, results, code
+
+isFile = (filePath) ->
+  fs.existsSync(filePath) and fs.statSync(filePath).isFile
+
 getApmPath = ->
   apmPath = path.join 'apm', 'node_modules', 'atom-package-manager', 'bin', 'apm'
-  apmPath = 'apm' unless fs.existsSync(apmPath) and fs.statSync(apmPath).isFile
+  apmPath = 'apm' unless isFile apmPath
 
   if process is 'win32' then "#{apmPath}.cmd" else apmPath
 
 getCurrentAtomShellVersion = (outputDir) ->
   versionPath = path.join outputDir, 'version'
-  if fs.existsSync(versionPath) and fs.statSync(versionPath).isFile
+  if isFile versionPath
     fs.readFileSync(versionPath).toString().trim()
   else
     null
 
 isAtomShellVersionCached = (downloadDir, version) ->
-  fs.existsSync(path.join(downloadDir, version, 'version')) and fs.statSync(path.join(downloadDir, version, 'version')).isFile
+  isFile path.join(downloadDir, version, 'version')
 
 installAtomShell = (outputDir, downloadDir, version) ->
   wrench.copyDirSyncRecursive path.join(downloadDir, version), outputDir,
@@ -30,7 +49,7 @@ installAtomShell = (outputDir, downloadDir, version) ->
     inflateSymlinks: false
 
 unzipAtomShell = (zipPath, callback) ->
-  gutil.log 'Unzipping atom-shell.'
+  gutil.log PLUGIN_NAME, 'Unzipping atom-shell.'
   directoryPath = path.dirname zipPath
 
   if process.platform is 'darwin'
@@ -71,7 +90,7 @@ saveAtomShellToCache = (inputStream, outputDir, downloadDir, version, callback) 
 
 rebuildNativeModules = (apm, previousVersion, currentVersion) ->
   if currentVersion isnt previousVersion
-    gutil.log "gulp-download-atom-shell", "Rebuilding native modules for new atom-shell version #{currentVersion}."
+    gutil.log PLUGIN_NAME, "Rebuilding native modules for new atom-shell version #{currentVersion}."
     apm ?= getApmPath()
     spawn {cmd: apm, args: ['rebuild']}
 
@@ -94,7 +113,7 @@ module.exports = (options) ->
 
   # Try find the cached one.
   if isAtomShellVersionCached downloadDir, version
-    gutil.log "gulp-download-atom-shell", "Installing cached atom-shell #{version}."
+    gutil.log PLUGIN_NAME, "Installing cached atom-shell #{version}."
     installAtomShell outputDir, downloadDir, version
     rebuildNativeModules apm, currentAtomShellVersion, version
   else
@@ -120,14 +139,14 @@ module.exports = (options) ->
             throw new PluginError "gulp-download-atom-shell", "Cannot download atom-shell #{version}"
 
           # Save file to cache.
-          gutil.log "gulp-download-atom-shell", "Downloading atom-shell #{version}."
+          gutil.log PLUGIN_NAME, "Downloading atom-shell #{version}."
           saveAtomShellToCache inputStream, outputDir, downloadDir, version, (error) ->
             if error?
               throw PluginError "Failed to download atom-shell #{version}"
 
-            gutil.log "gulp-download-atom-shell", "Installing atom-shell #{version}."
+            gutil.log PLUGIN_NAME, "Installing atom-shell #{version}."
             installAtomShell outputDir, downloadDir, version
-            rebuildNativeModules apm, currentAtomShellVersion, version
+            rebuildNativeModules apm, currentAtomShellVersion, version if rebuild
 
       if not found
         throw new PluginError "gulp-download-atom-shell", "Cannot find #{filename} in atom-shell #{version} release"
