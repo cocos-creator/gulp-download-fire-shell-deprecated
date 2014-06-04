@@ -1,3 +1,4 @@
+async    = require 'async'
 fs       = require 'fs'
 path     = require 'path'
 os       = require 'os'
@@ -88,17 +89,11 @@ saveAtomShellToCache = (inputStream, outputDir, downloadDir, version, callback) 
     process.stdout.cursorTo?(0)
     progress.tick(chunk.length)
 
-rebuildNativeModules = (apm, previousVersion, currentVersion) ->
-  if currentVersion isnt previousVersion
-    gutil.log PLUGIN_NAME, "Rebuilding native modules for new atom-shell version #{currentVersion}."
-    apm ?= getApmPath()
-    spawn {cmd: apm, args: ['rebuild']}
-
-module.exports = (options) ->
+module.exports = (options, cb) ->
   options = {} unless options?
 
   if not (options.version? and options.outputDir?)
-    throw new PluginError "gulp-download-atom-shell", "version and outputDir option must be given!"
+    throw new PluginError PLUGIN_NAME, "version and outputDir option must be given!"
 
   {version, outputDir, downloadDir, symbols, rebuild, apm} = options
   version = "v#{version}"
@@ -109,44 +104,61 @@ module.exports = (options) ->
 
   # Do nothing if it's the expected version.
   currentAtomShellVersion = getCurrentAtomShellVersion outputDir
-  return if currentAtomShellVersion is version
+  return cb() if currentAtomShellVersion is version
 
-  # Try find the cached one.
-  if isAtomShellVersionCached downloadDir, version
-    gutil.log PLUGIN_NAME, "Installing cached atom-shell #{version}."
-    installAtomShell outputDir, downloadDir, version
-    rebuildNativeModules apm, currentAtomShellVersion, version
-  else
-    # Request the assets.
-    github = new GitHub({repo: 'atom/atom-shell'})
-    github.getReleases tag_name: version, (error, releases) ->
-      unless releases?.length > 0
-        throw new PluginError "gulp-download-atom-shell", "Cannot find atom-shell #{version} from GitHub"
+  async.series [
+      # Try find the cached one, if not then download.
+      (callback) ->
+        if not isAtomShellVersionCached downloadDir, version
+          # Request the assets.
+          github = new GitHub({repo: 'atom/atom-shell'})
+          github.getReleases tag_name: version, (error, releases) ->
+            unless releases?.length > 0
+              callback new Error "Cannot find atom-shell #{version} from GitHub"
 
-      # Which file to download
-      filename =
-        if symbols
-          "atom-shell-#{version}-#{process.platform}-symbols.zip"
+            # Which file to download
+            filename =
+              if symbols
+                "atom-shell-#{version}-#{process.platform}-symbols.zip"
+              else
+                "atom-shell-#{version}-#{process.platform}.zip"
+
+            # Find the asset of current platform.
+            found = false
+            for asset in releases[0].assets when asset.name is filename
+              found = true
+              github.downloadAsset asset, (error, inputStream) ->
+                if error?
+                  callback new Error "Cannot download atom-shell #{version}"
+
+                # Save file to cache.
+                gutil.log PLUGIN_NAME, "Downloading atom-shell #{version}."
+                saveAtomShellToCache inputStream, outputDir, downloadDir, version, (error) ->
+                  if error?
+                    callback new Error "Failed to download atom-shell #{version}"
+                  else
+                    callback()
+
+            if not found
+              callback new Error "Cannot find #{filename} in atom-shell #{version} release"
         else
-          "atom-shell-#{version}-#{process.platform}.zip"
+          callback()
 
-      # Find the asset of current platform.
-      found = false
-      for asset in releases[0].assets when asset.name is filename
-        found = true
-        github.downloadAsset asset, (error, inputStream) ->
-          if error?
-            throw new PluginError "gulp-download-atom-shell", "Cannot download atom-shell #{version}"
+      (callback) ->
+        installAtomShell outputDir, downloadDir, version
 
-          # Save file to cache.
-          gutil.log PLUGIN_NAME, "Downloading atom-shell #{version}."
-          saveAtomShellToCache inputStream, outputDir, downloadDir, version, (error) ->
-            if error?
-              throw PluginError "Failed to download atom-shell #{version}"
+        callback()
 
-            gutil.log PLUGIN_NAME, "Installing atom-shell #{version}."
-            installAtomShell outputDir, downloadDir, version
-            rebuildNativeModules apm, currentAtomShellVersion, version if rebuild
+      (callback) ->
+        if rebuild and currentAtomShellVersion isnt version
+          gutil.log PLUGIN_NAME, "Rebuilding native modules for new atom-shell version #{currentVersion}."
+          apm ?= getApmPath()
+          spawn {cmd: apm, args: ['rebuild']}, callback
+        else
+          callback()
 
-      if not found
-        throw new PluginError "gulp-download-atom-shell", "Cannot find #{filename} in atom-shell #{version} release"
+    ], (error, results) ->
+        if error
+          throw new PluginError PLUGIN_NAME, error.message
+        else
+          cb()
