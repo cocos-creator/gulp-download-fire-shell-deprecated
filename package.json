@@ -1,6 +1,6 @@
 {
   "name": "gulp-download-atom-shell",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "gulp plugin to download atom-shell",
   "main": "index.js",
   "scripts": {
