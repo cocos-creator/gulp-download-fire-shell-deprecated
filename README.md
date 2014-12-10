@@ -3,6 +3,10 @@
 
 **Port from [grunt-download-atom-shell](http://github.com/atom/grunt-download-atom-shell)**
 
+## Forked Version Instruction
+
+In this forked version, we check if a cached version (in os temp folder) of Atom exsited by checking 'Atom.app' instead of version file.
+
 ## Installation
 
 Install gulp plugin package:
