@@ -41,7 +41,7 @@ getCurrentAtomShellVersion = (outputDir) ->
     null
 
 isAtomShellVersionCached = (downloadDir, version) ->
-  isFile path.join(downloadDir, version, 'version')
+  isFile path.join(downloadDir, version, 'Atom.app')
 
 installAtomShell = (outputDir, downloadDir, version) ->
   wrench.copyDirSyncRecursive path.join(downloadDir, version), outputDir,
@@ -104,7 +104,8 @@ module.exports = (options, cb) ->
 
   # Do nothing if it's the expected version.
   currentAtomShellVersion = getCurrentAtomShellVersion outputDir
-  return cb() if currentAtomShellVersion is version
+  outputAtom = path.join(outputDir, 'Atom.app')
+  return cb() if ((currentAtomShellVersion is version) && isFile(outputAtom))
 
   async.series [
       # Try find the cached one, if not then download.
