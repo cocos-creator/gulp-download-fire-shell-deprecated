@@ -214,6 +214,7 @@ module.exports = function(options, cb) {
               continue;
             }
             found = true;
+            console.log("target version found, now start downloading...");
             github.downloadAsset(asset, function(error, inputStream) {
               if (error != null) {
                 callback(new Error("Cannot download atom-shell " + version));
