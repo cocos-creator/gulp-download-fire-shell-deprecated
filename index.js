@@ -79,7 +79,7 @@ getCurrentAtomShellVersion = function(outputDir) {
 };
 
 isAtomShellVersionCached = function(downloadDir, version) {
-  var packageName = process.platform === "darwin" ? 'Atom.app' : 'atom';
+  var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball';
   return isFile(path.join(downloadDir, version, packageName));
 };
 
@@ -176,7 +176,7 @@ module.exports = function(options, cb) {
     apm = getApmPath();
   }
   currentAtomShellVersion = getCurrentAtomShellVersion(outputDir);
-  var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Atom.app" : "atom");
+  var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Fireball.app" : "fireball");
   if ((currentAtomShellVersion === version) && isFile(outputAtom) === true) {
     console.log("output file path already has Atom " + version + " exsited!");
     return cb();
