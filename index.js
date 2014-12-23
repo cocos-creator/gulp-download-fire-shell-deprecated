@@ -85,7 +85,7 @@ isAtomShellVersionCached = function(downloadDir, version) {
 
 installAtomShell = function(outputDir, downloadDir, version) {
   return wrench.copyDirSyncRecursive(path.join(downloadDir, version), outputDir, {
-    forceDelete: true,
+    forceDelete: false,
     excludeHiddenUnix: false,
     inflateSymlinks: false
   });
