@@ -17,6 +17,8 @@ Progress = require('progress');
 
 gutil = require('gulp-util');
 
+gulp = require('gulp');
+
 PluginError = gutil.PluginError;
 
 PLUGIN_NAME = "gulp-download-fire-shell";
