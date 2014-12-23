@@ -1,11 +1,11 @@
-# [gulp](http://gulpjs.com)-download-atom-shell
-> Download [atom-shell](http://github.com/atom/atom-shell) binary distribution
+# [gulp](http://gulpjs.com)-download-fire-shell
+> Download [atom-shell](http://github.com/fireball-x/atom-shell) binary distribution
 
 **Port from [grunt-download-atom-shell](http://github.com/atom/grunt-download-atom-shell)**
 
 ## Forked Version Instruction
 
-In this forked version, we check if a cached version (in os temp folder) of Atom exsited by checking 'Atom.app' instead of version file.
+In this forked version, we check if a cached version (in os temp folder) of Fireball exsited by checking 'Fireball.app' instead of version file.
 
 ## Installation
 
@@ -30,7 +30,7 @@ gulpfile.js
 
 ```javascript
 var gulp = require('gulp');
-var downloadatomshell = require('gulp-download-atom-shell');
+var downloadatomshell = require('gulp-download-fire-shell');
 
 gulp.task('downloadatomshell', function(cb){
 	downloadatomshell({

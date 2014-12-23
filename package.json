@@ -1,7 +1,7 @@
 {
-  "name": "gulp-download-atom-shell",
+  "name": "gulp-download-fire-shell",
   "version": "0.0.4",
-  "description": "gulp plugin to download atom-shell",
+  "description": "gulp plugin to download fireball distribution of atom-shell",
   "main": "index.js",
   "scripts": {
     "build": "coffee --bare --compile index.coffee",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/r0nn/gulp-download-atom-shell"
+    "url": "git://github.com/fireball-x/gulp-download-fire-shell"
   },
   "keywords": [
     "gulpfriendly",
@@ -17,13 +17,14 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/r0nn/gulp-download-atom-shell/issues"
+    "url": "https://github.com/fireball-x/gulp-download-fire-shell/issues"
   },
-  "homepage": "https://github.com/r0nn/gulp-download-atom-shell",
+  "homepage": "https://github.com/fireball-x/gulp-download-fire-shell",
   "dependencies": {
     "async": "^0.9.0",
     "decompress-zip": "0.0.4",
     "github-releases": "0.1.1",
+    "gulp" : "",
     "gulp-util": "^2.2.14",
     "progress": "1.1.2",
     "wrench": "1.5.4"
