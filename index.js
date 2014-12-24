@@ -70,18 +70,18 @@ getApmPath = function() {
   }
 };
 
-getCurrentAtomShellVersion = function(outputDir) {
-  var versionPath;
-  versionPath = path.join(outputDir, 'version');
-  if (isFile(versionPath)) {
-    return fs.readFileSync(versionPath).toString().trim();
-  } else {
-    return null;
-  }
-};
+// getCurrentAtomShellVersion = function(outputDir) {
+//   var versionPath;
+//   versionPath = path.join(outputDir, 'version');
+//   if (isFile(versionPath)) {
+//     return fs.readFileSync(versionPath).toString().trim();
+//   } else {
+//     return null;
+//   }
+// };
 
 isAtomShellVersionCached = function(downloadDir, version) {
-  var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball';
+  var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball.exe';
   return isFile(path.join(downloadDir, version, packageName));
 };
 
@@ -183,12 +183,12 @@ module.exports = function(options, cb) {
   if (apm == null) {
     apm = getApmPath();
   }
-  currentAtomShellVersion = getCurrentAtomShellVersion(outputDir);
-  var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Fireball.app" : "fireball");
-  if ((currentAtomShellVersion === version) && isFile(outputAtom) === true) {
-    console.log("output file path already has Atom " + version + " exsited!");
-    return cb();
-  }
+  // currentAtomShellVersion = getCurrentAtomShellVersion(outputDir);
+  // var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Fireball.app" : "fireball.exe");
+  // if ((currentAtomShellVersion === version) && isFile(outputAtom) === true) {
+  //   console.log("output file path already has Atom " + version + " exsited!");
+  //   return cb();
+  // }
   return async.series([
     function(callback) {
       var github;
@@ -251,7 +251,7 @@ module.exports = function(options, cb) {
       return callback();
     },
     function(callback) {
-      if (rebuild && currentAtomShellVersion !== version) {
+      if (rebuild) {
         gutil.log(PLUGIN_NAME, "Rebuilding native modules for new atom-shell version " + currentVersion + ".");
         if (apm == null) {
           apm = getApmPath();
