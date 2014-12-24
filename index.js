@@ -86,17 +86,17 @@ isAtomShellVersionCached = function(downloadDir, version) {
 };
 
 installAtomShell = function(outputDir, downloadDir, version) {
-  // return wrench.copyDirSyncRecursive(path.join(downloadDir, version), outputDir, {
-  //   forceDelete: true,
-  //   excludeHiddenUnix: false,
-  //   inflateSymlinks: false
-  // });
-  var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball';
-  var destPath = path.join(outputDir, packageName);
-  if (fs.existsSync(destPath)) {
-      wrench.rmdirSyncRecursive(destPath, false);
-  }
-  gulp.src(path.join(downloadDir, version, '**', '*.*')).pipe(gulp.dest(outputDir));
+    return wrench.copyDirSyncRecursive(path.join(downloadDir, version), outputDir, {
+        forceDelete: true,
+        excludeHiddenUnix: false,
+        inflateSymlinks: false
+    });
+  // var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball';
+  // var destPath = path.join(outputDir, packageName);
+  // if (fs.existsSync(destPath)) {
+  //     wrench.rmdirSyncRecursive(destPath, false);
+  // }
+  // gulp.src(path.join(downloadDir, version, '**')).pipe(gulp.dest(outputDir));
 };
 
 unzipAtomShell = function(zipPath, callback) {
