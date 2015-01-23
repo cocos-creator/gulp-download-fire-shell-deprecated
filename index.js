@@ -285,7 +285,7 @@ module.exports = {
         if (downloadDir == null) {
             downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
         }
-        console.log(downloadDir);
+        console.log('Download to cache folder: ' + downloadDir);
         version = 'v' + options.version;
         outputDir = options.outputDir;
         nativeModules = options.nativeModules;
@@ -350,5 +350,18 @@ module.exports = {
                 return cb();
             }
         });
+    },
+    clearCachedNativeModules: function(options, cb) {
+        if (options == null) {
+            options = {};
+        }
+        if (!(options.version != null)) {
+            throw new PluginError(PLUGIN_NAME, "version option must be given!");
+        }
+        var version = 'v' + options.version;
+        var downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
+        wrench.rmdirSyncRecursive(path.join(downloadDir, version));
+        console.log("Native module downloaded cache cleared!");
+        return cb();
     }
 };
