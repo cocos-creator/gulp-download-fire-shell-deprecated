@@ -36,6 +36,9 @@ spawn = function(options, callback) {
   proc.stderr.on('data', function(data) {
     return stderr.push(data.toString());
   });
+  proc.on('error', function(processError) {
+      error = error ? error : processError;
+  });
   return proc.on('exit', function(code, signal) {
     var results;
     if (code !== 0) {
@@ -91,12 +94,6 @@ installAtomShell = function(outputDir, downloadDir, version) {
         excludeHiddenUnix: false,
         inflateSymlinks: false
     });
-  // var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball';
-  // var destPath = path.join(outputDir, packageName);
-  // if (fs.existsSync(destPath)) {
-  //     wrench.rmdirSyncRecursive(destPath, false);
-  // }
-  // gulp.src(path.join(downloadDir, version, '**')).pipe(gulp.dest(outputDir));
 };
 
 unzipAtomShell = function(zipPath, callback) {
@@ -159,116 +156,189 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ca
   });
 };
 
-module.exports = function(options, cb) {
-  var apm, currentAtomShellVersion, downloadDir, outputDir, rebuild, symbols, version;
-  if (options == null) {
-    options = {};
-  }
-  if (!((options.version != null) && (options.outputDir != null))) {
-    throw new PluginError(PLUGIN_NAME, "version and outputDir option must be given!");
-  }
-  version = options.version, outputDir = options.outputDir, downloadDir = options.downloadDir, symbols = options.symbols, rebuild = options.rebuild, apm = options.apm;
-  version = "v" + version;
-  console.log("Cache folder: " + os.tmpdir() + '\n');
-
-  if (downloadDir == null) {
-    downloadDir = path.join(os.tmpdir(), 'downloaded-atom-shell');
-  }
-  if (symbols == null) {
-    symbols = false;
-  }
-  if (rebuild == null) {
-    rebuild = false;
-  }
-  if (apm == null) {
-    apm = getApmPath();
-  }
-  // currentAtomShellVersion = getCurrentAtomShellVersion(outputDir);
-  // var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Fireball.app" : "fireball.exe");
-  // if ((currentAtomShellVersion === version) && isFile(outputAtom) === true) {
-  //   console.log("output file path already has Atom " + version + " exsited!");
-  //   return cb();
-  // }
-  return async.series([
-    function(callback) {
-      var github;
-      if (!isAtomShellVersionCached(downloadDir, version)) {
-        github = new GitHub({
-          repo: 'fireball-x/atom-shell'
-        });
-        return github.getReleases({
-          tag_name: version
-        }, function(error, releases) {
-          var arch, asset, filename, found, _i, _len, _ref;
-          if (!((releases != null ? releases.length : void 0) > 0)) {
-            callback(new Error("Cannot find atom-shell " + version + " from GitHub"));
-          }
-          arch = (function() {
-            switch (process.platform) {
-              case 'win32':
-                return 'ia32';
-              case 'darwin':
-                return 'x64';
-              default:
-                return process.arch;
-            }
-          })();
-          filename = symbols ? "atom-shell-" + version + "-" + process.platform + "-" + arch + "-symbols.zip" : "atom-shell-" + version + "-" + process.platform + "-" + arch + ".zip";
-          found = false;
-          _ref = releases[0].assets;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            asset = _ref[_i];
-            if (!(asset.name === filename)) {
-              continue;
-            }
-            found = true;
-            console.log("target version found, now start downloading...");
-            github.downloadAsset(asset, function(error, inputStream) {
-              if (error != null) {
-                callback(new Error("Cannot download atom-shell " + version));
-              }
-              gutil.log(PLUGIN_NAME, "Downloading atom-shell " + version + ".");
-              return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function(error) {
-                if (error != null) {
-                  return callback(new Error("Failed to download atom-shell " + version));
-                } else {
-                  return callback();
-                }
-              });
-            });
-          }
-          if (!found) {
-            return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
-          }
-        });
-      } else {
-        console.log("Atom " + version + " already cached in temp folder, now start copying...");
-        return callback();
-      }
-    },
-    function(callback) {
-      installAtomShell(outputDir, downloadDir, version);
-      return callback();
-    },
-    function(callback) {
-      if (rebuild) {
-        gutil.log(PLUGIN_NAME, "Rebuilding native modules for new atom-shell version " + currentVersion + ".");
-        if (apm == null) {
-          apm = getApmPath();
+module.exports = {
+    downloadFireShell: function (options, cb) {
+        var apm, currentAtomShellVersion, downloadDir, outputDir, rebuild, symbols, version;
+        if (options == null) {
+            options = {};
         }
-        return spawn({
-          cmd: apm,
-          args: ['rebuild']
-        }, callback);
-      } else {
-        return callback();
-      }
+        if (!((options.version != null) && (options.outputDir != null))) {
+            throw new PluginError(PLUGIN_NAME, "version and outputDir option must be given!");
+        }
+        version = options.version, outputDir = options.outputDir, downloadDir = options.downloadDir, symbols = options.symbols, rebuild = options.rebuild, apm = options.apm;
+        version = "v" + version;
+        console.log("Cache folder: " + os.tmpdir() + '\n');
+
+        if (downloadDir == null) {
+            downloadDir = path.join(os.tmpdir(), 'downloaded-atom-shell');
+        }
+        if (symbols == null) {
+            symbols = false;
+        }
+        if (rebuild == null) {
+            rebuild = false;
+        }
+        if (apm == null) {
+            apm = getApmPath();
+        }
+        // currentAtomShellVersion = getCurrentAtomShellVersion(outputDir);
+        // var outputAtom = path.join(outputDir, process.platform === "darwin" ? "Fireball.app" : "fireball.exe");
+        // if ((currentAtomShellVersion === version) && isFile(outputAtom) === true) {
+        //   console.log("output file path already has Atom " + version + " exsited!");
+        //   return cb();
+        // }
+        return async.series([
+            function (callback) {
+                var github;
+                if (!isAtomShellVersionCached(downloadDir, version)) {
+                    github = new GitHub({
+                        repo: 'fireball-x/atom-shell'
+                    });
+                    return github.getReleases({
+                        tag_name: version
+                    }, function (error, releases) {
+                        var arch, asset, filename, found, _i, _len, _ref;
+                        if (!((releases != null ? releases.length : void 0) > 0)) {
+                            callback(new Error("Cannot find atom-shell " + version + " from GitHub"));
+                        }
+                        arch = (function () {
+                            switch (process.platform) {
+                                case 'win32':
+                                    return 'ia32';
+                                case 'darwin':
+                                    return 'x64';
+                                default:
+                                    return process.arch;
+                            }
+                        })();
+                        filename = symbols ? "atom-shell-" + version + "-" + process.platform + "-" + arch + "-symbols.zip" : "atom-shell-" + version + "-" + process.platform + "-" + arch + ".zip";
+                        found = false;
+                        _ref = releases[0].assets;
+                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                            asset = _ref[_i];
+                            if (!(asset.name === filename)) {
+                                continue;
+                            }
+                            found = true;
+                            console.log("target version found, now start downloading...");
+                            github.downloadAsset(asset, function (error, inputStream) {
+                                if (error != null) {
+                                    callback(new Error("Cannot download atom-shell " + version));
+                                }
+                                gutil.log(PLUGIN_NAME, "Downloading atom-shell " + version + ".");
+                                return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
+                                    if (error != null) {
+                                        return callback(new Error("Failed to download atom-shell " + version));
+                                    } else {
+                                        return callback();
+                                    }
+                                });
+                            });
+                        }
+                        if (!found) {
+                            return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
+                        }
+                    });
+                } else {
+                    console.log("Atom " + version + " already cached in temp folder, now start copying...");
+                    return callback();
+                }
+            },
+            function (callback) {
+                installAtomShell(outputDir, downloadDir, version);
+                return callback();
+            },
+            function (callback) {
+                if (rebuild) {
+                    gutil.log(PLUGIN_NAME, "Rebuilding native modules for new atom-shell version " + currentVersion + ".");
+                    if (apm == null) {
+                        apm = getApmPath();
+                    }
+                    return spawn({
+                        cmd: apm,
+                        args: ['rebuild']
+                    }, callback);
+                } else {
+                    return callback();
+                }
+            }
+        ], function (error, results) {
+            if (error) {
+                throw new PluginError(PLUGIN_NAME, error.message);
+            } else {
+                return cb();
+            }
+        });
+    },
+    downloadNativeModules: function (options, cb) {
+        var downloadDir, outputDir, version, nativeModules;
+        if (options == null) {
+            options = {};
+        }
+        if (!((options.version != null) && (options.outputDir != null) && (options.nativeModules != null))) {
+            throw new PluginError(PLUGIN_NAME, "version and outputDir option must be given!");
+        }
+        if (downloadDir == null) {
+            downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
+        }
+        version = options.version;
+        outputDir = options.outputDir;
+        nativeModules = options.nativeModules;
+        return async.series([
+            function(callback) {
+                var github = new Github({repo: 'fireball-x/atom-shell'});
+                return github.getReleases({
+                    tag_name: options.version
+                }, function (error, releases) {
+                    var asset, filename, found, _i, _len, _ref;
+                    if (!((releases != null ? releases.length : void 0) > 0)) {
+                        callback(new Error("Cannot find atom-shell " + options.version + " from GitHub"));
+                    }
+                    filename = "native-modules-v" + options.version + "-" + process.platform + ".zip";
+                    found = false;
+                    _ref = releases[0].assets;
+                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                        asset = _ref[_i];
+                        if (!(asset.name === filename)) {
+                            continue;
+                        }
+                        found = true;
+                        console.log("target version found, now start downloading...");
+                        github.downloadAsset(asset, function (error, inputStream) {
+                            if (error != null) {
+                                callback(new Error("Cannot download native-modules from release" + version));
+                            }
+                            gutil.log(PLUGIN_NAME, "Downloading native modules from release " + version + ".");
+                            return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
+                                if (error != null) {
+                                    return callback(new Error("Failed to download atom-shell " + version));
+                                } else {
+                                    return callback();
+                                }
+                            });
+                        });
+                    }
+                    if (!found) {
+                        return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
+                    }
+                });
+            },
+            function (callback) {
+                nativeModules.forEach(function(modulePath) {
+                    wrench.copyDirSyncRecursive(path.join(downloadDir, version, modulePath), path.join(outputDir,modulePath), {
+                        forceDelete: true,
+                        excludeHiddenUnix: false,
+                        inflateSymlinks: false
+                    });
+                });
+                return callback();
+            }
+        ], function (error, results) {
+            if (error) {
+                throw new PluginError(PLUGIN_NAME, error.message);
+            } else {
+                return cb();
+            }
+        });
     }
-  ], function(error, results) {
-    if (error) {
-      throw new PluginError(PLUGIN_NAME, error.message);
-    } else {
-      return cb();
-    }
-  });
 };
