@@ -215,7 +215,7 @@ module.exports = {
                                     return process.arch;
                             }
                         })();
-                        filename = symbols ? "atom-shell-" + version + "-" + process.platform + "-" + arch + "-symbols.zip" : "atom-shell-" + version + "-" + process.platform + "-" + arch + ".zip";
+                        filename = symbols ? "fire-shell-" + version + "-" + process.platform + "-" + arch + "-symbols.zip" : "fire-shell-" + version + "-" + process.platform + "-" + arch + ".zip";
                         found = false;
                         _ref = releases[0].assets;
                         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -298,7 +298,7 @@ module.exports = {
                     }, function (error, releases) {
                         var asset, filename, found, _i, _len, _ref;
                         if (!((releases != null ? releases.length : void 0) > 0)) {
-                            callback(new Error("Cannot find atom-shell " + options.version + " from GitHub"));
+                            callback(new Error("Cannot find fire-shell " + options.version + " from GitHub"));
                         }
                         filename = "native-modules-v" + options.version + "-" + process.platform + ".zip";
                         found = false;
