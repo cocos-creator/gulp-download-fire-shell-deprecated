@@ -24,53 +24,53 @@ PluginError = gutil.PluginError;
 PLUGIN_NAME = "gulp-download-fire-shell";
 
 spawn = function(options, callback) {
-  var childProcess, error, proc, stderr, stdout;
-  childProcess = require('child_process');
-  stdout = [];
-  stderr = [];
-  error = null;
-  proc = childProcess.spawn(options.cmd, options.args, options.opts);
-  proc.stdout.on('data', function(data) {
-    return stdout.push(data.toString());
-  });
-  proc.stderr.on('data', function(data) {
-    return stderr.push(data.toString());
-  });
-  proc.on('error', function(processError) {
-      error = error ? error : processError;
-  });
-  return proc.on('exit', function(code, signal) {
-    var results;
-    if (code !== 0) {
-      error = new Error(signal);
-    }
-    results = {
-      stderr: stderr.join(''),
-      stdout: stdout.join(''),
-      code: code
-    };
-    if (code !== 0) {
-      gutil.log(PLUGIN_NAME, gutil.colors.red(results.stderr));
-    }
-    return callback(error, results, code);
-  });
+    var childProcess, error, proc, stderr, stdout;
+    childProcess = require('child_process');
+    stdout = [];
+    stderr = [];
+    error = null;
+    proc = childProcess.spawn(options.cmd, options.args, options.opts);
+    proc.stdout.on('data', function(data) {
+        return stdout.push(data.toString());
+    });
+    proc.stderr.on('data', function(data) {
+        return stderr.push(data.toString());
+    });
+    proc.on('error', function(processError) {
+        error = error ? error : processError;
+    });
+    return proc.on('exit', function(code, signal) {
+        var results;
+        if (code !== 0) {
+            error = new Error(signal);
+        }
+        results = {
+            stderr: stderr.join(''),
+            stdout: stdout.join(''),
+            code: code
+        };
+        if (code !== 0) {
+            gutil.log(PLUGIN_NAME, gutil.colors.red(results.stderr));
+        }
+        return callback(error, results, code);
+    });
 };
 
 isFile = function(filePath) {
-  return fs.existsSync(filePath) && fs.statSync(filePath).isFile;
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile;
 };
 
 getApmPath = function() {
-  var apmPath;
-  apmPath = path.join('apm', 'node_modules', 'atom-package-manager', 'bin', 'apm');
-  if (!isFile(apmPath)) {
-    apmPath = 'apm';
-  }
-  if (process.platform === 'win32') {
-    return "" + apmPath + ".cmd";
-  } else {
-    return apmPath;
-  }
+    var apmPath;
+    apmPath = path.join('apm', 'node_modules', 'atom-package-manager', 'bin', 'apm');
+    if (!isFile(apmPath)) {
+        apmPath = 'apm';
+    }
+    if (process.platform === 'win32') {
+        return "" + apmPath + ".cmd";
+    } else {
+        return apmPath;
+    }
 };
 
 // getCurrentAtomShellVersion = function(outputDir) {
@@ -84,9 +84,13 @@ getApmPath = function() {
 // };
 
 isAtomShellVersionCached = function(downloadDir, version) {
-  var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball.exe';
-  return isFile(path.join(downloadDir, version, packageName));
+    var packageName = process.platform === "darwin" ? 'Fireball.app' : 'fireball.exe';
+    return isFile(path.join(downloadDir, version, packageName));
 };
+
+isNativeModuleVersionCached = function(downloadDir, version) {
+    return fs.existsSync(path.join(downloadDir, version));
+}
 
 installAtomShell = function(outputDir, downloadDir, version) {
     return wrench.copyDirSyncRecursive(path.join(downloadDir, version), outputDir, {
@@ -97,63 +101,63 @@ installAtomShell = function(outputDir, downloadDir, version) {
 };
 
 unzipAtomShell = function(zipPath, callback) {
-  var DecompressZip, directoryPath, unzipper;
-  gutil.log(PLUGIN_NAME, 'Unzipping atom-shell.');
-  directoryPath = path.dirname(zipPath);
-  if (process.platform === 'darwin') {
-    return spawn({
-      cmd: 'unzip',
-      args: [zipPath, '-d', directoryPath]
-    }, function(error) {
-      fs.unlinkSync(zipPath);
-      return callback(error);
-    });
-  } else {
-    DecompressZip = require('decompress-zip');
-    unzipper = new DecompressZip(zipPath);
-    unzipper.on('error', callback);
-    unzipper.on('extract', function(log) {
-      fs.closeSync(unzipper.fd);
-      fs.unlinkSync(zipPath);
-      return callback(null);
-    });
-    return unzipper.extract({
-      path: directoryPath
-    });
-  }
+    var DecompressZip, directoryPath, unzipper;
+    gutil.log(PLUGIN_NAME, 'Unzipping atom-shell.');
+    directoryPath = path.dirname(zipPath);
+    if (process.platform === 'darwin') {
+        return spawn({
+            cmd: 'unzip',
+            args: [zipPath, '-d', directoryPath]
+        }, function(error) {
+            fs.unlinkSync(zipPath);
+            return callback(error);
+        });
+    } else {
+        DecompressZip = require('decompress-zip');
+        unzipper = new DecompressZip(zipPath);
+        unzipper.on('error', callback);
+        unzipper.on('extract', function(log) {
+            fs.closeSync(unzipper.fd);
+            fs.unlinkSync(zipPath);
+            return callback(null);
+        });
+        return unzipper.extract({
+            path: directoryPath
+        });
+    }
 };
 
 saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, callback) {
-  var cacheFile, len, outputStream, progress;
-  wrench.mkdirSyncRecursive(path.join(downloadDir, version));
-  cacheFile = path.join(downloadDir, version, 'atom-shell.zip');
-  if (process.platform !== 'win32') {
-    len = parseInt(inputStream.headers['content-length'], 10);
-    progress = new Progress('downloading [:bar] :percent :etas', {
-      complete: '=',
-      incomplete: ' ',
-      width: 20,
-      total: len
+    var cacheFile, len, outputStream, progress;
+    wrench.mkdirSyncRecursive(path.join(downloadDir, version));
+    cacheFile = path.join(downloadDir, version, 'atom-shell.zip');
+    if (process.platform !== 'win32') {
+        len = parseInt(inputStream.headers['content-length'], 10);
+        progress = new Progress('downloading [:bar] :percent :etas', {
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            total: len
+        });
+    }
+    outputStream = fs.createWriteStream(cacheFile);
+    inputStream.pipe(outputStream);
+    inputStream.on('error', callback);
+    outputStream.on('error', callback);
+    outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
+    return inputStream.on('data', function(chunk) {
+        var _base, _base1;
+        if (process.platform === 'win32') {
+            return;
+        }
+        if (typeof(_base = process.stdout).clearLine === "function") {
+            _base.clearLine();
+        }
+        if (typeof(_base1 = process.stdout).cursorTo === "function") {
+            _base1.cursorTo(0);
+        }
+        return progress.tick(chunk.length);
     });
-  }
-  outputStream = fs.createWriteStream(cacheFile);
-  inputStream.pipe(outputStream);
-  inputStream.on('error', callback);
-  outputStream.on('error', callback);
-  outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
-  return inputStream.on('data', function(chunk) {
-    var _base, _base1;
-    if (process.platform === 'win32') {
-      return;
-    }
-    if (typeof(_base = process.stdout).clearLine === "function") {
-      _base.clearLine();
-    }
-    if (typeof(_base1 = process.stdout).cursorTo === "function") {
-      _base1.cursorTo(0);
-    }
-    return progress.tick(chunk.length);
-  });
 };
 
 module.exports = {
@@ -281,47 +285,53 @@ module.exports = {
         if (downloadDir == null) {
             downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
         }
-        version = options.version;
+        console.log(downloadDir);
+        version = 'v' + options.version;
         outputDir = options.outputDir;
         nativeModules = options.nativeModules;
         return async.series([
             function(callback) {
-                var github = new Github({repo: 'fireball-x/atom-shell'});
-                return github.getReleases({
-                    tag_name: options.version
-                }, function (error, releases) {
-                    var asset, filename, found, _i, _len, _ref;
-                    if (!((releases != null ? releases.length : void 0) > 0)) {
-                        callback(new Error("Cannot find atom-shell " + options.version + " from GitHub"));
-                    }
-                    filename = "native-modules-v" + options.version + "-" + process.platform + ".zip";
-                    found = false;
-                    _ref = releases[0].assets;
-                    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                        asset = _ref[_i];
-                        if (!(asset.name === filename)) {
-                            continue;
+                var github = new GitHub({repo: 'fireball-x/atom-shell'});
+                if (!isNativeModuleVersionCached(downloadDir,version)) {
+                    return github.getReleases({
+                        tag_name: version
+                    }, function (error, releases) {
+                        var asset, filename, found, _i, _len, _ref;
+                        if (!((releases != null ? releases.length : void 0) > 0)) {
+                            callback(new Error("Cannot find atom-shell " + options.version + " from GitHub"));
                         }
-                        found = true;
-                        console.log("target version found, now start downloading...");
-                        github.downloadAsset(asset, function (error, inputStream) {
-                            if (error != null) {
-                                callback(new Error("Cannot download native-modules from release" + version));
+                        filename = "native-modules-v" + options.version + "-" + process.platform + ".zip";
+                        found = false;
+                        _ref = releases[0].assets;
+                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                            asset = _ref[_i];
+                            if (!(asset.name === filename)) {
+                                continue;
                             }
-                            gutil.log(PLUGIN_NAME, "Downloading native modules from release " + version + ".");
-                            return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
+                            found = true;
+                            console.log("target version found, now start downloading...");
+                            github.downloadAsset(asset, function (error, inputStream) {
                                 if (error != null) {
-                                    return callback(new Error("Failed to download atom-shell " + version));
-                                } else {
-                                    return callback();
+                                    callback(new Error("Cannot download native-modules from release" + version));
                                 }
+                                gutil.log(PLUGIN_NAME, "Downloading native modules from release " + version + ".");
+                                return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
+                                    if (error != null) {
+                                        return callback(new Error("Failed to download atom-shell " + version));
+                                    } else {
+                                        return callback();
+                                    }
+                                });
                             });
-                        });
-                    }
-                    if (!found) {
-                        return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
-                    }
-                });
+                        }
+                        if (!found) {
+                            return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
+                        }
+                    });
+                } else {
+                    console.log("Native modules for " + version + " already cached in temp folder, now start copying...");
+                    return callback();
+                }
             },
             function (callback) {
                 nativeModules.forEach(function(modulePath) {
