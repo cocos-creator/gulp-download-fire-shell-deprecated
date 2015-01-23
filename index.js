@@ -203,7 +203,7 @@ module.exports = {
                     }, function (error, releases) {
                         var arch, asset, filename, found, _i, _len, _ref;
                         if (!((releases != null ? releases.length : void 0) > 0)) {
-                            callback(new Error("Cannot find atom-shell " + version + " from GitHub"));
+                            callback(new Error("Cannot find fire-shell " + version + " from GitHub"));
                         }
                         arch = (function () {
                             switch (process.platform) {
@@ -227,9 +227,9 @@ module.exports = {
                             console.log("target version found, now start downloading...");
                             github.downloadAsset(asset, function (error, inputStream) {
                                 if (error != null) {
-                                    callback(new Error("Cannot download atom-shell " + version));
+                                    callback(new Error("Cannot download fire-shell " + version));
                                 }
-                                gutil.log(PLUGIN_NAME, "Downloading atom-shell " + version + ".");
+                                gutil.log(PLUGIN_NAME, "Downloading fire-shell " + version + ".");
                                 return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
                                     if (error != null) {
                                         return callback(new Error("Failed to download atom-shell " + version));
