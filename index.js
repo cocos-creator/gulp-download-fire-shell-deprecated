@@ -274,8 +274,8 @@ module.exports = {
             }
         });
     },
-    downloadNativeModules: function (options, cb) {
-        var downloadDir, outputDir, version, nativeModules;
+    downloadNativeModules: function (options, cb) { //options: {version,outputDir,nativeModules,isFireShell}
+        var downloadDir, outputDir, version, nativeModules, isFireShell;
         if (options == null) {
             options = {};
         }
@@ -285,6 +285,7 @@ module.exports = {
         if (downloadDir == null) {
             downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
         }
+        isFireShell = !!options.isFireShell;
         console.log('Download to cache folder: ' + downloadDir);
         version = 'v' + options.version;
         outputDir = options.outputDir;
@@ -300,7 +301,8 @@ module.exports = {
                         if (!((releases != null ? releases.length : void 0) > 0)) {
                             callback(new Error("Cannot find fire-shell " + options.version + " from GitHub"));
                         }
-                        filename = "native-modules-v" + options.version + "-" + process.platform + ".zip";
+                        filename = process.platform === "win32" ? "native-modules-" + version + "-" + process.platform + (isFireShell ? "-fire" : "-atom") + ".zip" : "native-modules-" + version + "-" + process.platform + ".zip";
+                        console.log("download native module: " + filename);
                         found = false;
                         _ref = releases[0].assets;
                         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
