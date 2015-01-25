@@ -131,7 +131,7 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ca
     var cacheFile, len, outputStream, progress;
     wrench.mkdirSyncRecursive(path.join(downloadDir, version));
     cacheFile = path.join(downloadDir, version, 'atom-shell.zip');
-    if (process.platform !== 'win32') {
+    //if (process.platform !== 'win32') {
         len = parseInt(inputStream.headers['content-length'], 10);
         progress = new Progress('downloading [:bar] :percent :etas', {
             complete: '=',
@@ -139,7 +139,7 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ca
             width: 20,
             total: len
         });
-    }
+    //}
     outputStream = fs.createWriteStream(cacheFile);
     inputStream.pipe(outputStream);
     inputStream.on('error', callback);
@@ -147,9 +147,9 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ca
     outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
     return inputStream.on('data', function(chunk) {
         var _base, _base1;
-        if (process.platform === 'win32') {
-            return;
-        }
+        //if (process.platform === 'win32') {
+        //    return;
+        //}
         if (typeof(_base = process.stdout).clearLine === "function") {
             _base.clearLine();
         }
