@@ -174,7 +174,7 @@ module.exports = {
         console.log("Cache folder: " + os.tmpdir() + '\n');
 
         if (downloadDir == null) {
-            downloadDir = path.join(os.tmpdir(), 'downloaded-atom-shell');
+            downloadDir = path.join(os.tmpdir(), 'downloaded-fire-shell');
         }
         if (symbols == null) {
             symbols = false;
