@@ -133,37 +133,37 @@ unzipAtomShell = function(zipPath, callback) {
     }
 };
 
-saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, callback) {
+saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, chinaMirror, callback) {
     var cacheFile, len, outputStream, progress;
     wrench.mkdirSyncRecursive(path.join(downloadDir, version));
     cacheFile = path.join(downloadDir, version, 'atom-shell.zip');
-    if (process.platform !== 'win32') {
-        len = parseInt(inputStream.headers['content-length'], 10);
-        progress = new Progress('downloading [:bar] :percent :etas', {
-            complete: '=',
-            incomplete: ' ',
-            width: 20,
-            total: len
-        });
-    }
+    //if (process.platform !== 'win32' && !chinaMirror) {
+    //    len = parseInt(inputStream.headers['content-length'], 10);
+    //    progress = new Progress('downloading [:bar] :percent :etas', {
+    //        complete: '=',
+    //        incomplete: ' ',
+    //        width: 20,
+    //        total: len
+    //    });
+    //}
     outputStream = fs.createWriteStream(cacheFile);
     inputStream.pipe(outputStream);
     inputStream.on('error', callback);
     outputStream.on('error', callback);
     outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
-    return inputStream.on('data', function(chunk) {
-        var _base, _base1;
-        if (process.platform === 'win32') {
-            return;
-        }
-        if (typeof(_base = process.stdout).clearLine === "function") {
-            _base.clearLine();
-        }
-        if (typeof(_base1 = process.stdout).cursorTo === "function") {
-            _base1.cursorTo(0);
-        }
-        return progress.tick(chunk.length);
-    });
+    //return inputStream.on('data', function(chunk) {
+    //    var _base, _base1;
+    //    if (process.platform === 'win32') {
+    //        return;
+    //    }
+    //    if (typeof(_base = process.stdout).clearLine === "function") {
+    //        _base.clearLine();
+    //    }
+    //    if (typeof(_base1 = process.stdout).cursorTo === "function") {
+    //        _base1.cursorTo(0);
+    //    }
+    //    return progress.tick(chunk.length);
+    //});
 };
 
 module.exports = {
@@ -240,6 +240,7 @@ module.exports = {
                                         callback(new Error("Cannot download fire-shell " + version));
                                     }
                                     gutil.log(PLUGIN_NAME, "Downloading fire-shell " + version + ".");
+                                    inputStream.use(dprogress());
                                     return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, false, function (error) {
                                         if (error != null) {
                                             return callback(new Error("Failed to download atom-shell " + version));
