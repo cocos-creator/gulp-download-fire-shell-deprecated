@@ -150,7 +150,8 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ch
     inputStream.pipe(outputStream);
     inputStream.on('error', callback);
     outputStream.on('error', callback);
-    outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
+    // outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
+    outputStream.on('close', callback);
     //return inputStream.on('data', function(chunk) {
     //    var _base, _base1;
     //    if (process.platform === 'win32') {
@@ -240,7 +241,6 @@ module.exports = {
                                         callback(new Error("Cannot download fire-shell " + version));
                                     }
                                     gutil.log(PLUGIN_NAME, "Downloading fire-shell " + version + ".");
-                                    inputStream.use(dprogress());
                                     return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, false, function (error) {
                                         if (error != null) {
                                             return callback(new Error("Failed to download atom-shell " + version));
@@ -257,25 +257,18 @@ module.exports = {
                     } else { //start download from mirror in china
                         var url = mirrorDomain + version + '/' + filename;
                         gutil.log("Download from mirror in china: " + url);
-                        var download = new Download({extract: false, mode: '755'}).get(url).use(dprogress());
+                        var cachePath = path.join(downloadDir, version);
+                        var download = new Download({extract: false, mode: '755'}).get(url).dest(cachePath).use(dprogress());
                         download.run(function(err, files, stream) {
                             if (err) throw err;
-                            return saveAtomShellToCache(stream, outputDir, downloadDir, version, true, function(error) {
+                            unzipAtomShell(path.join(cachePath, filename), function(error) {
                                 if (error != null) {
-                                    return callback(new Error("Failed to download atom-shell " + version));
+                                    throw error;
                                 } else {
                                     return callback();
                                 }
                             });
                         });
-
-                        //return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function(error) {
-                        //    if (error != null) {
-                        //        return callback(new Error("Failed to download atom-shell " + version));
-                        //    } else {
-                        //        return callback();
-                        //    }
-                        //});
                     }
                 } else {
                     console.log("Atom " + version + " already cached in temp folder, now start copying...");
@@ -309,7 +302,7 @@ module.exports = {
         });
     },
     downloadNativeModules: function (options, cb) { //options: {version,outputDir,nativeModules,isFireShell}
-        var downloadDir, outputDir, version, nativeModules, isFireShell;
+        var downloadDir, outputDir, version, nativeModules, isFireShell,chinaMirror;
         if (options == null) {
             options = {};
         }
@@ -321,49 +314,68 @@ module.exports = {
         }
         isFireShell = !!options.isFireShell;
         console.log('Download to cache folder: ' + downloadDir);
+        chinaMirror = !!options.chinaMirror;
         version = 'v' + options.version;
         outputDir = options.outputDir;
         nativeModules = options.nativeModules;
+
         return async.series([
             function(callback) {
-                var github = new GitHub({repo: 'fireball-x/atom-shell'});
                 if (!isNativeModuleVersionCached(downloadDir,version)) {
-                    return github.getReleases({
-                        tag_name: version
-                    }, function (error, releases) {
-                        var asset, filename, found, _i, _len, _ref;
-                        if (!((releases != null ? releases.length : void 0) > 0)) {
-                            callback(new Error("Cannot find fire-shell " + options.version + " from GitHub"));
-                        }
-                        filename = process.platform === "win32" ? "native-modules-" + version + "-" + process.platform + (isFireShell ? "-fire" : "-atom") + ".zip" : "native-modules-" + version + "-" + process.platform + ".zip";
-                        console.log("download native module: " + filename);
-                        found = false;
-                        _ref = releases[0].assets;
-                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                            asset = _ref[_i];
-                            if (!(asset.name === filename)) {
-                                continue;
+                    var filename = process.platform === "win32" ? "native-modules-" + version + "-" + process.platform + (isFireShell ? "-fire" : "-atom") + ".zip" : "native-modules-" + version + "-" + process.platform + ".zip";
+                    if (!chinaMirror) {
+                        var github = new GitHub({repo: 'fireball-x/atom-shell'});
+                        return github.getReleases({
+                            tag_name: version
+                        }, function (error, releases) {
+                            var asset, found, _i, _len, _ref;
+                            if (!((releases != null ? releases.length : void 0) > 0)) {
+                                callback(new Error("Cannot find fire-shell " + options.version + " from GitHub"));
                             }
-                            found = true;
-                            console.log("target version found, now start downloading...");
-                            github.downloadAsset(asset, function (error, inputStream) {
-                                if (error != null) {
-                                    callback(new Error("Cannot download native-modules from release" + version));
+                            console.log("download native module: " + filename);
+                            found = false;
+                            _ref = releases[0].assets;
+                            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                                asset = _ref[_i];
+                                if (!(asset.name === filename)) {
+                                    continue;
                                 }
-                                gutil.log(PLUGIN_NAME, "Downloading native modules from release " + version + ".");
-                                return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, function (error) {
+                                found = true;
+                                console.log("target version found, now start downloading...");
+                                github.downloadAsset(asset, function (error, inputStream) {
                                     if (error != null) {
-                                        return callback(new Error("Failed to download atom-shell " + version));
-                                    } else {
-                                        return callback();
+                                        callback(new Error("Cannot download native-modules from release" + version));
                                     }
+                                    gutil.log(PLUGIN_NAME, "Downloading native modules from release " + version + ".");
+                                    return saveAtomShellToCache(inputStream, outputDir, downloadDir, version, false, function (error) {
+                                        if (error != null) {
+                                            return callback(new Error("Failed to download atom-shell " + version));
+                                        } else {
+                                            return callback();
+                                        }
+                                    });
                                 });
+                            }
+                            if (!found) {
+                                return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
+                            }
+                        });
+                    } else { //start download from mirror in china
+                        var url = mirrorDomain + version + '/' + filename;
+                        gutil.log("Download from mirror in china: " + url);
+                        var cachePath = path.join(downloadDir, version);
+                        var download = new Download({extract: false, mode: '755'}).get(url).dest(cachePath).use(dprogress());
+                        download.run(function(err, files, stream) {
+                            if (err) throw err;
+                            unzipAtomShell(path.join(cachePath, filename), function(error) {
+                                if (error != null) {
+                                    throw error;
+                                } else {
+                                    return callback();
+                                }
                             });
-                        }
-                        if (!found) {
-                            return callback(new Error("Cannot find " + filename + " in atom-shell " + version + " release"));
-                        }
-                    });
+                        });
+                    }
                 } else {
                     console.log("Native modules for " + version + " already cached in temp folder, now start copying...");
                     return callback();
