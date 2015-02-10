@@ -137,34 +137,11 @@ saveAtomShellToCache = function(inputStream, outputDir, downloadDir, version, ch
     var cacheFile, len, outputStream, progress;
     wrench.mkdirSyncRecursive(path.join(downloadDir, version));
     cacheFile = path.join(downloadDir, version, 'atom-shell.zip');
-    //if (process.platform !== 'win32' && !chinaMirror) {
-    //    len = parseInt(inputStream.headers['content-length'], 10);
-    //    progress = new Progress('downloading [:bar] :percent :etas', {
-    //        complete: '=',
-    //        incomplete: ' ',
-    //        width: 20,
-    //        total: len
-    //    });
-    //}
     outputStream = fs.createWriteStream(cacheFile);
     inputStream.pipe(outputStream);
     inputStream.on('error', callback);
     outputStream.on('error', callback);
-    // outputStream.on('close', unzipAtomShell.bind(this, cacheFile, callback));
     outputStream.on('close', callback);
-    //return inputStream.on('data', function(chunk) {
-    //    var _base, _base1;
-    //    if (process.platform === 'win32') {
-    //        return;
-    //    }
-    //    if (typeof(_base = process.stdout).clearLine === "function") {
-    //        _base.clearLine();
-    //    }
-    //    if (typeof(_base1 = process.stdout).cursorTo === "function") {
-    //        _base1.cursorTo(0);
-    //    }
-    //    return progress.tick(chunk.length);
-    //});
 };
 
 module.exports = {
@@ -399,7 +376,7 @@ module.exports = {
             }
         });
     },
-    clearCachedNativeModules: function(options, cb) {
+    clearCachedDownloads: function(options, cb) {
         if (options == null) {
             options = {};
         }
@@ -407,9 +384,11 @@ module.exports = {
             throw new PluginError(PLUGIN_NAME, "version option must be given!");
         }
         var version = 'v' + options.version;
-        var downloadDir = path.join(os.tmpdir(), 'downloaded-native-modules');
-        wrench.rmdirSyncRecursive(path.join(downloadDir, version));
-        console.log("Native module downloaded cache cleared!");
+        var downloadShellDir = path.join(os.tmpdir(), 'downloaded-fire-shell');
+        var downloadModuleDir = path.join(os.tmpdir(), 'downloaded-native-modules');
+        wrench.rmdirSyncRecursive(path.join(downloadShellDir, version));
+        wrench.rmdirSyncRecursive(path.join(downloadModuleDir, version));
+        console.log("Fire-shell and Native module downloaded cache cleared!");
         return cb();
     }
 };
