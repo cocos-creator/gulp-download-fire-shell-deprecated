@@ -1,6 +1,6 @@
 {
   "name": "gulp-download-fire-shell",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "gulp plugin to download fireball distribution of atom-shell",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,8 @@
   },
   "keywords": [
     "gulpfriendly",
-    "atom-shell"
+    "atom-shell",
+    "fireball"
   ],
   "license": "MIT",
   "bugs": {
