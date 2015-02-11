@@ -1,12 +1,8 @@
 {
   "name": "gulp-download-fire-shell",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "gulp plugin to download fireball distribution of atom-shell",
   "main": "index.js",
-  "scripts": {
-    "build": "coffee --bare --compile index.coffee",
-    "prepublish": "coffee --bare --compile index.coffee"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/fireball-x/gulp-download-fire-shell"
@@ -29,7 +25,7 @@
     "gulp-util": "^2.2.14",
     "progress": "1.1.8",
     "wrench": "1.5.4",
-    "download": "",
-    "download-status": ""
+    "download": "3.3.0",
+    "download-status": "2.1.1"
   }
 }
