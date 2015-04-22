@@ -27,7 +27,7 @@ PluginError = gutil.PluginError;
 
 PLUGIN_NAME = "gulp-download-fire-shell";
 
-mirrorDomain = 'http://7u2pxz.com1.z0.glb.clouddn.com/fire-shell/';
+mirrorDomain = 'http://7u2pxz.com2.z0.glb.clouddn.com/fire-shell/';
 
 spawn = function(options, callback) {
     var childProcess, error, proc, stderr, stdout;

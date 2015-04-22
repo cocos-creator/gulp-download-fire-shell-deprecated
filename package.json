@@ -1,6 +1,7 @@
 {
   "name": "gulp-download-fire-shell",
-  "version": "0.0.7",
+  "author": "Nan Wang",
+  "version": "0.0.8",
   "description": "gulp plugin to download fireball distribution of atom-shell",
   "main": "index.js",
   "repository": {
