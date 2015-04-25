@@ -108,7 +108,7 @@ installAtomShell = function(outputDir, downloadDir, version) {
 
 unzipAtomShell = function(zipPath, callback) {
     var DecompressZip, directoryPath, unzipper;
-    gutil.log(PLUGIN_NAME, 'Unzipping atom-shell.');
+    gutil.log(PLUGIN_NAME, 'unzipping ' + path.basename(zipPath));
     directoryPath = path.dirname(zipPath);
     if (process.platform === 'darwin') {
         return spawn({
