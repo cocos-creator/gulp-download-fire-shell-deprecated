@@ -271,7 +271,7 @@ module.exports = {
                         var download = new Download({
                             extract: false,
                             mode: '755'
-                        }).get(url).dest(cachePath).use(dprogress());
+                        }).get(url).dest(cachePath);
                         download.run(function(err, files, stream) {
                             if (err) throw err;
                             unzipAtomShell(path.join(cachePath, filename), function(error) {
@@ -497,7 +497,7 @@ module.exports = {
                         var download = new Download({
                             extract: false,
                             mode: '755'
-                        }).get(url).dest(cachePath).use(dprogress());
+                        }).get(url).dest(cachePath);
                         download.run(function(err, files, stream) {
                             if (err) throw err;
                             unzipAtomShell(path.join(cachePath, filename), function(error) {
