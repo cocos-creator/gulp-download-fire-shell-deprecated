@@ -2,6 +2,8 @@
 var Download, PLUGIN_NAME, PluginError, githubDomain, async, fs, getApmPath,
  gutil, installAtomShell, isAtomShellVersionCached, isFireShellVersionCached, isFile, os, path, spawn, unzipAtomShell, wrench, mirrorDomain, del;
 
+ var mkdirp = require('mkdirp').sync;
+
 Download = require('download');
 
 async = require('async');
@@ -94,6 +96,8 @@ isNativeModuleVersionCached = function(downloadDir, version) {
 };
 
 installAtomShell = function(outputDir, downloadDir, version) {
+    console.log(outputDir);
+    mkdirp(outputDir);
     return wrench.copyDirSyncRecursive(path.join(downloadDir, version), outputDir, {
         forceDelete: true,
         excludeHiddenUnix: false,
