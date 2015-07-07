@@ -65,7 +65,7 @@ spawn = function(options, callback) {
 };
 
 isFile = function(filePath) {
-    return fs.existsSync(filePath) && fs.statSync(filePath).isFile;
+    return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 };
 
 getApmPath = function() {
